@@ -12,6 +12,6 @@ export function IssuesToDTO(issue: any): CreateIssueDTO {
         title: issue.title,
         description: issue.body,
         state: issue.state,
-        repository: issue.repository,
+        repository: issue.html_url,
     };
 }

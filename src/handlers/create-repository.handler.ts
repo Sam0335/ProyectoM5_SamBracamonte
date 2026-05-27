@@ -2,13 +2,13 @@
 import { Octokit } from '@octokit/rest';
 import { CreateRepositorySchema } from '../schemas/index.schemas';
 import { RepoToDTO, CreateRepositoryDTO } from '../dtos/create-repository.dto';
-import { mapGitHubError, formatToolError, ToolResponse } from '../errors/index.errors';
+import { mapGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
 import { ValidationError } from '../utils/types';
 import { withExponentialBackoff, shouldRetryGitHub } from '../utils/retry';
 
 export type CreateRepositoryResult =
     | { isError: false; data: CreateRepositoryDTO }
-    | ToolResponse;
+    | ToolErrorData;
 
 export async function createRepositoryHandler(
     input: unknown,
@@ -26,11 +26,17 @@ export async function createRepositoryHandler(
 
     try {
         const response = await withExponentialBackoff(
-            () => octokit.rest.repos.createForAuthenticatedUser({
-                name: parsed.data.name,
-                description: parsed.data.description,
-                private: parsed.data.private,
-            }),
+            async () => {
+                try {
+                    return await octokit.rest.repos.createForAuthenticatedUser({
+                        name: parsed.data.name,
+                        description: parsed.data.description,
+                        private: parsed.data.private,
+                    });
+                } catch (err) {
+                    mapGitHubError(err);
+                }
+            },
             {
                 maxRetries: 3,
                 baseDelayMs: 1000,
@@ -44,7 +50,6 @@ export async function createRepositoryHandler(
             data: RepoToDTO(response.data),
         };
     } catch (err) {
-        mapGitHubError(err);
         return formatToolError(err);
     }
 }

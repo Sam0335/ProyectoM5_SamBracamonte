@@ -1,10 +1,10 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { createOctokit } from './github/octokit.client';
-import { listRepositoriesHandler } from './handlers/list-repositories';
-import { listIssuesHandler } from './handlers/list-issues';
+import { listRepositoriesHandler } from './handlers/list-repositories.handler';
+import { listIssuesHandler } from './handlers/list-issues.handler';
 import { createFileHandler } from './handlers/create-file.handler';
-import { createIssueHandler } from './handlers/create-issue';
+import { createIssueHandler } from './handlers/create-issue.handler';
 import { createRepositoryHandler } from './handlers/create-repository.handler';
 import { getFileContentHandler } from './handlers/get-file-content.handler';
 import { createBranchHandler } from './handlers/create-branch.handler';
@@ -57,7 +57,7 @@ async function main() {
 
     server.tool(
     'create_repository',
-    'Crea un nuevo repositorio en GitHub para el usuario autenticado. Requiere nombre, descripción (opcional) y estado privado/público.',
+    'Crea un nuevo repositorio en GitHub para el usuario autenticado (con los permisos del token). Requiere nombre, descripción (opcional) y estado privado/público.',
     CreateRepositorySchema.shape,
     async (input) => {
         const result = await createRepositoryHandler(input, octokit);
@@ -120,9 +120,7 @@ server.tool(
     }
   );
 
-    console.error('Server MCP iniciado con tool: list_repositories');
-
-  // PASO 4: Conectar transporte
+  // Transporte
     const transport = new StdioServerTransport();
     await server.connect(transport);
 }

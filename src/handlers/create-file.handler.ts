@@ -1,14 +1,14 @@
 import { Octokit } from '@octokit/rest';
 import { CreateCommitSchema } from '../schemas/index.schemas';
 import { createCommitWithFile } from '../github/create-commit.helper';
-import { mapGitHubError, formatToolError, ToolResponse } from '../errors/index.errors';
+import { mapGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
 import { ValidationError } from '../utils/types';
 
 type CommitData = { commitSha: string; commitUrl: string };
 
 export type CreateFileResult =
     | { isError: false; data: CommitData }
-    | ToolResponse;
+    | ToolErrorData;
 
 export async function createFileHandler(
     input: unknown,

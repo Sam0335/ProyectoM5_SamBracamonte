@@ -10,8 +10,8 @@ export function mapIssuesToDTO(list: any[]): ListIssuesDTO[] {
     return list.map(issue => ({
         number: issue.number,
         title: issue.title,
-        description: issue.description,
+        description: issue.body,
         state: issue.state,
-        repository: issue.repository,
+        repository: issue.html_url,
     }));
 }

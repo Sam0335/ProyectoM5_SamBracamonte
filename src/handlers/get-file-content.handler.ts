@@ -1,13 +1,13 @@
 import { Octokit } from '@octokit/rest';
 import { GetFileContentSchema } from '../schemas/index.schemas';
-import { mapGitHubError, formatToolError, ToolResponse } from '../errors/index.errors';
+import { mapGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
 import { ValidationError, AppError } from '../utils/types';
 
 type FileContentData = { content: string; sha: string };
 
 export type GetFileContentResult =
     | { isError: false; data: FileContentData }
-    | ToolResponse;
+    | ToolErrorData;
 
 export async function getFileContentHandler(
     input: unknown,

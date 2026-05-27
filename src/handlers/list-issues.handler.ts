@@ -1,12 +1,12 @@
 import { Octokit } from '@octokit/rest';
 import { ListIssuesSchema } from '../schemas/index.schemas';
 import { mapIssuesToDTO, ListIssuesDTO } from '../dtos/list-issues.dto';
-import { mapGitHubError, formatToolError, ToolResponse } from '../errors/index.errors';
+import { mapGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
 import { ValidationError } from '../utils/types';
 
 export type ListIssuesResult =
     | { isError: false; data: ListIssuesDTO[] }
-    | ToolResponse;
+    | ToolErrorData;
 
 export async function listIssuesHandler(
     input: unknown,

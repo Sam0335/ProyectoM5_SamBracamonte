@@ -1,12 +1,12 @@
 import { Octokit } from '@octokit/rest';
 import { CreateIssueSchema } from '../schemas/index.schemas';
 import { IssuesToDTO, CreateIssueDTO } from '../dtos/create-issue.dto';
-import { mapGitHubError, formatToolError, ToolResponse } from '../errors/index.errors';
+import { mapGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
 import { ValidationError } from '../utils/types';
 
 export type CreateIssueResult =
-    | { isError: false; data: CreateIssueDTO[] }
-    | ToolResponse;
+    | { isError: false; data: CreateIssueDTO }
+    | ToolErrorData;
 
 export async function createIssueHandler(
     input: unknown,
@@ -38,7 +38,7 @@ export async function createIssueHandler(
     // PASO 3: Mapear a DTO y devolver
         return {
             isError: false,
-            data: [IssuesToDTO(response.data)],
+            data: IssuesToDTO(response.data),
         };
     } catch (err) {
         mapGitHubError(err);

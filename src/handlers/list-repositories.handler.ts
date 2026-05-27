@@ -2,12 +2,12 @@
 import { Octokit } from '@octokit/rest';
 import { ListRepositoriesSchema } from '../schemas/index.schemas';
 import { mapReposToDTO, ListReposDTO } from '../dtos/list-repositories.dto';
-import { mapGitHubError, formatToolError, ToolResponse } from '../errors/index.errors';
+import { mapGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
 import { ValidationError } from '../utils/types';
 
 export type ListRepositoriesResult =
     | { isError: false; data: ListReposDTO[] }
-    | ToolResponse;
+    | ToolErrorData;
 
 export async function listRepositoriesHandler(
     input: unknown,

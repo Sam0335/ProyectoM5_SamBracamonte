@@ -1,19 +1,6 @@
 import { z } from 'zod';
 
-//Buscar usuarios y repositorios first
-export const GetUserSchema = z.object({
-    username: z.string().min(1, 'El nombre de usuario es requerido'),
-});
-
-export type GetUserInput = z.infer<typeof GetUserSchema>;
-
-export const GetRepositorySchema = z.object({
-    owner: z.string().min(1, 'El propietario del repositorio es requerido'),
-    repo: z.string().min(1, 'El nombre del repositorio es requerido'),
-});
-
-export type GetRepositoryInput = z.infer<typeof GetRepositorySchema>;
-
+//Obtener contenido de un archivo
 export const GetFileContentSchema = z.object({
     owner: z.string().min(1, 'El propietario del repositorio es requerido'),
     repo: z.string().min(1, 'El nombre del repositorio es requerido'),
@@ -25,7 +12,7 @@ export type GetFileContentInput = z.infer<typeof GetFileContentSchema>;
 //Listar repositorios e issues
 export const ListRepositoriesSchema = z.object({
     username: z.string().min(1, 'El nombre de usuario es requerido'),
-    type: z.enum(['all', 'public', 'private']).default('all'),
+    type: z.enum(['all', 'owner', 'member']).default('owner'),
     direction: z.enum(['asc', 'desc']).default('desc'),
     page: z.number().int().min(1).default(1),
     per_page: z.number().int().min(1).max(100).default(10),
@@ -46,7 +33,6 @@ export type ListIssuesInput = z.infer<typeof ListIssuesSchema>;
 
 //Crear repositorios, issues, commits y branches
 export const CreateRepositorySchema = z.object({
-    owner: z.string().min(1, 'El nombre de usuario es requerido'),
     name: z.string().min(1, 'El nombre del repositorio es requerido'),
     description: z.string().optional(),
     private: z.boolean().default(false),

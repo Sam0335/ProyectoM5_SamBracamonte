@@ -60,16 +60,22 @@ export function mapGitHubError(err: any): never {
 
 // Respuesta legible para el LLM 
 
-export type ToolResponse = {
-    content: Array<{ type: 'text'; text: string }>;
+// Reemplazá ToolResponse y formatToolError por esto:
+
+export type ToolErrorData = {
     isError: true;
+    code: string;
+    message: string;
+    hint: string;
 };
 
-export function formatToolError(err: unknown): ToolResponse {
+export function formatToolError(err: unknown): ToolErrorData {
+    let code: string = 'UNKNOWN_ERROR';
     let message: string;
     let hint: string;
 
     if (err instanceof AppError) {
+        code = err.code;
         message = err.message;
 
         switch (err.code) {
@@ -95,8 +101,5 @@ export function formatToolError(err: unknown): ToolResponse {
         hint = 'Si el problema persiste, verificá que el servidor esté corriendo correctamente.';
     }
 
-    return {
-        content: [{ type: 'text', text: JSON.stringify({ isError: true, message, hint }, null, 2) }],
-        isError: true,
-    };
+    return { isError: true, code, message, hint };
 }

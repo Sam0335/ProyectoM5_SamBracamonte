@@ -1,13 +1,13 @@
 import { Octokit } from '@octokit/rest';
 import { CreateBranchSchema } from '../schemas/index.schemas';
-import { mapGitHubError, formatToolError, ToolResponse } from '../errors/index.errors';
+import { mapGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
 import { ValidationError } from '../utils/types';
 
 type BranchData = { branch: string; sha: string; url: string };
 
 export type CreateBranchResult =
     | { isError: false; data: BranchData }
-    | ToolResponse;
+    | ToolErrorData;
 
 export async function createBranchHandler(
     input: unknown,

@@ -41,7 +41,6 @@ describe('CreateIssueSchema', () => {
 describe('CreateRepositorySchema', () => {
   it('aplica el valor default de private = false', () => {
     const result = CreateRepositorySchema.safeParse({
-      owner: 'octocat',
       name: 'mi-repo',
     });
     expect(result.success).toBe(true);
@@ -52,7 +51,6 @@ describe('CreateRepositorySchema', () => {
 
   it('rechaza name vacío', () => {
     const result = CreateRepositorySchema.safeParse({
-      owner: 'octocat',
       name: '',
     });
     expect(result.success).toBe(false);
