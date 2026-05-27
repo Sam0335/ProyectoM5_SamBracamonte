@@ -2,7 +2,7 @@ import { Octokit } from '@octokit/rest';
 import { GetFileContentSchema } from '../schemas/index.schemas';
 import { getFileContentToDTO, GetFileContentDTO } from '../dtos/get-file-content.dto';
 import { handleGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
-import { ValidationError, AppError } from '../utils/types';
+import { ValidationError } from '../utils/types';
 
 export type GetFileContentResult =
     | { isError: false; data: GetFileContentDTO }
@@ -27,10 +27,8 @@ export async function getFileContentHandler(
 
         if (Array.isArray(res.data) || res.data.type !== 'file') {
             return formatToolError(
-                new AppError({
-                    code: 'VALIDATION_ERROR',
-                    message: 'El path no apunta a un archivo.',
-                    retryable: false,
+                new ValidationError('El path no apunta a un archivo.', {
+                    path: parsed.data.path,
                 })
             );
         }

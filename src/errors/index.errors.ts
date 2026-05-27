@@ -1,14 +1,9 @@
-// src/errors/github-errors.ts
-
 import {
     AppError,
     AuthenticationError,
     GitHubAPIError,
     NetworkError,
-    ValidationError,
 } from '../utils/types';
-
-// Error crudo de Octokit
 
 export function mapGitHubError(err: any): never {
     const status = err?.status;
@@ -22,6 +17,7 @@ export function mapGitHubError(err: any): never {
     if (status === 403) {
         const isRateLimit =
             err?.response?.headers?.['x-ratelimit-remaining'] === '0';
+
         throw new GitHubAPIError(
             isRateLimit
                 ? 'Rate limit de GitHub excedido. Esperá unos minutos antes de reintentar.'
@@ -58,32 +54,39 @@ export function mapGitHubError(err: any): never {
     });
 }
 
-// Respuesta legible para el LLM 
-
-// Reemplazá ToolResponse y formatToolError por esto:
-
 export type ToolErrorData = {
     isError: true;
     code: string;
     message: string;
     hint: string;
+    status?: number;
+    retryable: boolean;
+    details?: Record<string, unknown>;
 };
 
 export function formatToolError(err: unknown): ToolErrorData {
-    let code: string = 'UNKNOWN_ERROR';
-    let message: string;
-    let hint: string;
+    let code = 'UNKNOWN_ERROR';
+    let message = 'Error inesperado. Consultá los logs del servidor.';
+    let hint =
+        'Si el problema persiste, verificá que el servidor esté corriendo correctamente.';
+    let status: number | undefined;
+    let retryable = false;
+    let details: Record<string, unknown> | undefined;
 
     if (err instanceof AppError) {
         code = err.code;
         message = err.message;
+        status = err.status;
+        retryable = err.retryable;
+        details = err.details;
 
         switch (err.code) {
             case 'VALIDATION_ERROR':
                 hint = 'Corregí los parámetros e intentá de nuevo.';
                 break;
             case 'AUTH_ERROR':
-                hint = 'Configurá un GITHUB_TOKEN válido con los scopes necesarios (repo, user).';
+                hint =
+                    'Configurá un GITHUB_TOKEN válido con los scopes necesarios (repo, user).';
                 break;
             case 'GITHUB_API_ERROR':
                 hint = err.retryable
@@ -96,12 +99,17 @@ export function formatToolError(err: unknown): ToolErrorData {
             default:
                 hint = 'Revisá los logs del servidor para más detalles.';
         }
-    } else {
-        message = 'Error inesperado. Consultá los logs del servidor.';
-        hint = 'Si el problema persiste, verificá que el servidor esté corriendo correctamente.';
     }
 
-    return { isError: true, code, message, hint };
+    return {
+        isError: true,
+        code,
+        message,
+        hint,
+        status,
+        retryable,
+        details,
+    };
 }
 
 export function handleGitHubError(err: unknown): ToolErrorData {
