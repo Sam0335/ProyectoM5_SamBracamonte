@@ -1,5 +1,5 @@
 import { Octokit } from '@octokit/rest';
-import { CreateBranchSchema } from '../schemas/create-branch.schema';
+import { CreateBranchSchema } from '../schemas/index.schemas';
 import { mapGitHubError, ToolError } from '../errors/index.errors';
 
 export type CreateBranchResult =

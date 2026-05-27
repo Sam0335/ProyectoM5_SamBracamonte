@@ -44,7 +44,7 @@ export const ListIssuesSchema = z.object({
 
 export type ListIssuesInput = z.infer<typeof ListIssuesSchema>;
 
-//Crear repositorios, issues y commits
+//Crear repositorios, issues, commits y branches
 export const CreateRepositorySchema = z.object({
     owner: z.string().min(1, 'El nombre de usuario es requerido'),
     name: z.string().min(1, 'El nombre del repositorio es requerido'),
@@ -75,3 +75,12 @@ export const CreateCommitSchema = z.object({
 });
 
 export type CreateCommitInput = z.infer<typeof CreateCommitSchema>;
+
+export const CreateBranchSchema = z.object({
+  owner: z.string().min(1, 'owner es requerido'),
+  repo: z.string().min(1, 'repo es requerido'),
+  branch: z.string().min(1, 'branch es requerido'),
+  from_branch: z.string().min(1, 'from_branch es requerido').default('main'),
+});
+
+export type CreateBranchInput = z.infer<typeof CreateBranchSchema>;

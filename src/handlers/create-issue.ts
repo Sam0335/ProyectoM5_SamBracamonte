@@ -13,9 +13,6 @@ export async function createIssueHandler(
     octokit: Octokit
 ): Promise<CreateIssueResult> {
 
-  // LOG DE DEBUGGING: ver qué llega del agente
-  console.error('[DEBUG] create_issue recibió:', JSON.stringify(input));
-
   // PASO 1: Validar el input con Zod
     const parsed = CreateIssueSchema.safeParse(input);
 

@@ -4,31 +4,31 @@ import { createOctokit } from './github/octokit.client';
 import { listRepositoriesHandler } from './handlers/list-repositories';
 import { listIssuesHandler } from './handlers/list-issues';
 import { createFileHandler } from './handlers/create-file.handler';
-import { getFileContentHandler } from './handlers/get-file-content.handler';
-import { CreateBranchSchema } from './schemas/create-branch.schema';
-import { createBranchHandler } from './handlers/create-branch.handler';
 import { createIssueHandler } from './handlers/create-issue';
 import { createRepositoryHandler } from './handlers/create-repository.handler';
+import { getFileContentHandler } from './handlers/get-file-content.handler';
+import { createBranchHandler } from './handlers/create-branch.handler';
 import {
     ListRepositoriesSchema,
     CreateCommitSchema,
     GetFileContentSchema,
     ListIssuesSchema,
     CreateIssueSchema,
-    CreateRepositorySchema
+    CreateRepositorySchema,
+    CreateBranchSchema
 } from './schemas/index.schemas';
 
 async function main() {
-  // PASO 1: Crear el servidor
+// Crear el servidor
     const server = new McpServer({
 	    name: 'mi-mcp-tool',
 	    version: '1.0.0',
     });
 
-  // PASO 2: Crear el cliente de Octokit
+// Crear el cliente de Octokit
     const octokit = createOctokit();
 
-  // PASO 3: Registrar la tool
+// Tools registradas
     server.tool(
 	    'list_repositories',
       'Lista los repositorios públicos/privados de un usuario de GitHub. Requiere username.',
@@ -44,7 +44,7 @@ async function main() {
 
     server.tool(
       'list_issues',
-      'Lista issues de un repositorio de GitHub. Requiere owner, repo y state.',
+      'Lista issues de un repositorio específico de GitHub. Requiere owner, repo y state (open, closed, all).',
       ListIssuesSchema.shape,
       async (input) => {
         const result = await listIssuesHandler(input, octokit);
@@ -107,12 +107,10 @@ async function main() {
       }
     );
 
-server.registerTool(
+server.tool(
     'create_branch',
-    {
-      description: 'Crea una nueva rama en un repositorio de GitHub a partir de una rama existente. Requiere owner, repo, branch (nombre de la nueva rama) y from_branch (rama origen, por defecto "main").',
-      inputSchema: CreateBranchSchema.shape,
-    },
+      'Crea una nueva rama en un repositorio de GitHub a partir de una rama existente. Requiere owner, repo, branch (nombre de la nueva rama) y from_branch (rama origen, por defecto "main").',
+      CreateBranchSchema.shape,
     async (input) => {
       const result = await createBranchHandler(input, octokit);
       return {
