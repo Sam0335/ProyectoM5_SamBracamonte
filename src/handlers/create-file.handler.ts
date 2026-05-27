@@ -1,13 +1,12 @@
 import { Octokit } from '@octokit/rest';
 import { CreateCommitSchema } from '../schemas/index.schemas';
 import { createCommitWithFile } from '../github/create-commit.helper';
+import { createFileToDTO, CreateFileDTO } from '../dtos/create-file.dto';
 import { handleGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
 import { ValidationError } from '../utils/types';
 
-type CommitData = { commitSha: string; commitUrl: string };
-
 export type CreateFileResult =
-    | { isError: false; data: CommitData }
+    | { isError: false; data: CreateFileDTO }
     | ToolErrorData;
 
 export async function createFileHandler(
@@ -29,7 +28,7 @@ export async function createFileHandler(
 
         return {
             isError: false,
-            data: result,
+            data: createFileToDTO(result),
         };
     } catch (err) {
         return handleGitHubError(err);

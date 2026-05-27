@@ -1,12 +1,12 @@
 import { Octokit } from '@octokit/rest';
 import { CreateBranchSchema } from '../schemas/index.schemas';
+import { createBranch } from '../github/create-branch.helper';
+import { createBranchToDTO, CreateBranchDTO } from '../dtos/create-branch.dto';
 import { handleGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
 import { ValidationError } from '../utils/types';
 
-type BranchData = { branch: string; sha: string; url: string };
-
 export type CreateBranchResult =
-    | { isError: false; data: BranchData }
+    | { isError: false; data: CreateBranchDTO }
     | ToolErrorData;
 
 export async function createBranchHandler(
@@ -23,30 +23,12 @@ export async function createBranchHandler(
         );
     }
 
-    const { owner, repo, branch, from_branch } = parsed.data;
-
     try {
-        const refResp = await octokit.git.getRef({
-            owner,
-            repo,
-            ref: `heads/${from_branch}`,
-        });
-        const sha = refResp.data.object.sha;
-
-        await octokit.git.createRef({
-            owner,
-            repo,
-            ref: `refs/heads/${branch}`,
-            sha,
-        });
+        const result = await createBranch(octokit, parsed.data);
 
         return {
             isError: false,
-            data: {
-                branch,
-                sha,
-                url: `https://github.com/${owner}/${repo}/tree/${branch}`,
-            },
+            data: createBranchToDTO(result),
         };
     } catch (err) {
         return handleGitHubError(err);

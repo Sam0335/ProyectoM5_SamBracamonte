@@ -1,12 +1,11 @@
 import { Octokit } from '@octokit/rest';
 import { GetFileContentSchema } from '../schemas/index.schemas';
+import { getFileContentToDTO, GetFileContentDTO } from '../dtos/get-file-content.dto';
 import { handleGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
 import { ValidationError, AppError } from '../utils/types';
 
-type FileContentData = { content: string; sha: string };
-
 export type GetFileContentResult =
-    | { isError: false; data: FileContentData }
+    | { isError: false; data: GetFileContentDTO }
     | ToolErrorData;
 
 export async function getFileContentHandler(
@@ -40,7 +39,7 @@ export async function getFileContentHandler(
 
         return {
             isError: false,
-            data: { content: decoded, sha: res.data.sha },
+            data: getFileContentToDTO({ content: decoded, sha: res.data.sha }),
         };
     } catch (err) {
         return handleGitHubError(err);
