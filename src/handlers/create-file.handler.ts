@@ -1,7 +1,7 @@
 import { Octokit } from '@octokit/rest';
 import { CreateCommitSchema } from '../schemas/index.schemas';
 import { createCommitWithFile } from '../github/create-commit.helper';
-import { mapGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
+import { handleGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
 import { ValidationError } from '../utils/types';
 
 type CommitData = { commitSha: string; commitUrl: string };
@@ -32,7 +32,6 @@ export async function createFileHandler(
             data: result,
         };
     } catch (err) {
-        mapGitHubError(err);
-        return formatToolError(err);
+        return handleGitHubError(err);
     }
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mapGitHubError, formatToolError } from '../src/errors/index.errors';
+import { mapGitHubError, formatToolError, handleGitHubError } from '../src/errors/index.errors';
 import { AppError } from '../src/utils/types';
 
 describe('mapGitHubError', () => {
@@ -37,5 +37,15 @@ describe('formatToolError', () => {
         expect(result.isError).toBe(true);
         expect(result.message).toBeTruthy();
         expect(result.hint).toBeTruthy();
+    });
+});
+
+describe('handleGitHubError', () => {
+    it('mapea un error crudo de GitHub y devuelve ToolErrorData', () => {
+        const result = handleGitHubError({ status: 404 });
+
+        expect(result.isError).toBe(true);
+        expect(result.code).toBe('GITHUB_API_ERROR');
+        expect(result.message).toContain('no encontrado');
     });
 });

@@ -1,7 +1,7 @@
 import { Octokit } from '@octokit/rest';
 import { ListIssuesSchema } from '../schemas/index.schemas';
 import { mapIssuesToDTO, ListIssuesDTO } from '../dtos/list-issues.dto';
-import { mapGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
+import { handleGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
 import { ValidationError } from '../utils/types';
 
 export type ListIssuesResult =
@@ -37,7 +37,6 @@ export async function listIssuesHandler(
             data: mapIssuesToDTO(response.data),
         };
     } catch (err) {
-        mapGitHubError(err);
-        return formatToolError(err);
+        return handleGitHubError(err);
     }
 }

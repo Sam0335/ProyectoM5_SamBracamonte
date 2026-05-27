@@ -2,7 +2,7 @@
 import { Octokit } from '@octokit/rest';
 import { CreateRepositorySchema } from '../schemas/index.schemas';
 import { RepoToDTO, CreateRepositoryDTO } from '../dtos/create-repository.dto';
-import { mapGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
+import { handleGitHubError, mapGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
 import { ValidationError } from '../utils/types';
 import { withExponentialBackoff, shouldRetryGitHub } from '../utils/retry';
 
@@ -50,6 +50,6 @@ export async function createRepositoryHandler(
             data: RepoToDTO(response.data),
         };
     } catch (err) {
-        return formatToolError(err);
+        return handleGitHubError(err);
     }
 }

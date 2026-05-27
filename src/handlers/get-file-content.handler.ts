@@ -1,6 +1,6 @@
 import { Octokit } from '@octokit/rest';
 import { GetFileContentSchema } from '../schemas/index.schemas';
-import { mapGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
+import { handleGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
 import { ValidationError, AppError } from '../utils/types';
 
 type FileContentData = { content: string; sha: string };
@@ -43,7 +43,6 @@ export async function getFileContentHandler(
             data: { content: decoded, sha: res.data.sha },
         };
     } catch (err) {
-        mapGitHubError(err);
-        return formatToolError(err);
+        return handleGitHubError(err);
     }
 }

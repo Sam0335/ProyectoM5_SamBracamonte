@@ -103,3 +103,13 @@ export function formatToolError(err: unknown): ToolErrorData {
 
     return { isError: true, code, message, hint };
 }
+
+export function handleGitHubError(err: unknown): ToolErrorData {
+    try {
+        mapGitHubError(err);
+    } catch (mappedErr) {
+        return formatToolError(mappedErr);
+    }
+
+    return formatToolError(err);
+}

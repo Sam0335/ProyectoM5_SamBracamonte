@@ -1,6 +1,6 @@
 import { Octokit } from '@octokit/rest';
 import { CreateBranchSchema } from '../schemas/index.schemas';
-import { mapGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
+import { handleGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
 import { ValidationError } from '../utils/types';
 
 type BranchData = { branch: string; sha: string; url: string };
@@ -49,7 +49,6 @@ export async function createBranchHandler(
             },
         };
     } catch (err) {
-        mapGitHubError(err);
-        return formatToolError(err);
+        return handleGitHubError(err);
     }
 }

@@ -2,7 +2,7 @@
 import { Octokit } from '@octokit/rest';
 import { ListRepositoriesSchema } from '../schemas/index.schemas';
 import { mapReposToDTO, ListReposDTO } from '../dtos/list-repositories.dto';
-import { mapGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
+import { handleGitHubError, formatToolError, ToolErrorData } from '../errors/index.errors';
 import { ValidationError } from '../utils/types';
 
 export type ListRepositoriesResult =
@@ -37,7 +37,6 @@ export async function listRepositoriesHandler(
             data: mapReposToDTO(response.data),
         };
     } catch (err) {
-        mapGitHubError(err);
-        return formatToolError(err);
+        return handleGitHubError(err);
     }
 }
