@@ -1,12 +1,12 @@
 import { Octokit } from '@octokit/rest';
 import { CreateIssueSchema } from '../schemas/index.schemas';
 import { IssuesToDTO, CreateIssueDTO } from '../dtos/create-issue.dto';
-import { mapGitHubError, ToolError } from '../errors/index.errors';
-
+import { mapGitHubError, formatToolError, ToolResponse } from '../errors/index.errors';
+import { ValidationError } from '../utils/types';
 
 export type CreateIssueResult =
     | { isError: false; data: CreateIssueDTO[] }
-    | ToolError;
+    | ToolResponse;
 
 export async function createIssueHandler(
     input: unknown,
@@ -17,12 +17,11 @@ export async function createIssueHandler(
     const parsed = CreateIssueSchema.safeParse(input);
 
     if (!parsed.success) {
-        return {
-            isError: true,
-            code: 'VALIDATION_ERROR',
-            message: 'Input invalido para create_issue',
-            hint: 'owner, repo y title son obligatorios y no pueden estar vacios',
-        };
+        return formatToolError(
+            new ValidationError('Input inválido para create_issue', {
+                issues: parsed.error.issues,
+            })
+        );
     }
 
   // PASO 2: Llamar a GitHub via Octokit
@@ -42,7 +41,7 @@ export async function createIssueHandler(
             data: [IssuesToDTO(response.data)],
         };
     } catch (err) {
-    // PASO 4: Si algo falla, mapeamos el error
-        return mapGitHubError(err);
+        mapGitHubError(err);
+        return formatToolError(err);
     }
 }

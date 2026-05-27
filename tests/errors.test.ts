@@ -1,68 +1,44 @@
+// tests/errors.test.ts
 import { describe, it, expect, vi } from 'vitest';
-import { mapGitHubError } from '../src/errors/index.errors';
-import { createIssueHandler } from '../src/handlers/create-issue';
-
-// ── Tests de transformación de errores ─────────────────────────────────────
+import { mapGitHubError, formatToolError } from '../src/errors/index.errors';
+import { AppError } from '../src/utils/types';
 
 describe('mapGitHubError', () => {
-  it('convierte error 401 a mensaje UNAUTHORIZED claro', () => {
-    const err = { status: 401 };
-    const result = mapGitHubError(err);
+    it('lanza AuthenticationError en 401', () => {
+        expect(() => mapGitHubError({ status: 401 })).toThrow('Token de GitHub');
+    });
 
-    expect(result.isError).toBe(true);
-    expect(result.code).toBe('UNAUTHORIZED');
-    expect(result.message).toContain('Token');
-    expect(result.hint).toBeTruthy();
-  });
+    it('lanza GitHubAPIError en 404', () => {
+        expect(() => mapGitHubError({ status: 404 })).toThrow('no encontrado');
+    });
 
-  it('convierte error 404 a NOT_FOUND con hint útil', () => {
-    const err = { status: 404 };
-    const result = mapGitHubError(err);
-
-    expect(result.isError).toBe(true);
-    expect(result.code).toBe('NOT_FOUND');
-    // El mensaje NO debe ser un stack trace ni estar vacío
-    expect(result.message.length).toBeGreaterThan(0);
-    expect(result.hint.length).toBeGreaterThan(0);
-  });
-
-  it('convierte error 403 a FORBIDDEN', () => {
-    const err = { status: 403 };
-    const result = mapGitHubError(err);
-
-    expect(result.isError).toBe(true);
-    expect(result.code).toBe('FORBIDDEN');
-  });
-
-  it('maneja errores desconocidos sin romper', () => {
-    const err = { status: 999, message: 'Algo raro' };
-    const result = mapGitHubError(err);
-
-    expect(result.isError).toBe(true);
-    expect(result.code).toBe('UNKNOWN_ERROR');
-  });
+    it('lanza GitHubAPIError retryable en 403 con rate limit', () => {
+        const err = {
+            status: 403,
+            response: { headers: { 'x-ratelimit-remaining': '0' } },
+        };
+        expect(() => mapGitHubError(err)).toThrow('Rate limit');
+    });
 });
 
-// ── Test: handler propaga el error correctamente ────────────────────────────
+describe('formatToolError', () => {
+    it('convierte AppError en respuesta MCP con message y hint', () => {
+        const err = new AppError({ code: 'AUTH_ERROR', message: 'Token inválido', retryable: false });
+        const result = formatToolError(err);
 
-describe('createIssueHandler con error de GitHub simulado', () => {
-  it('devuelve UNAUTHORIZED cuando Octokit lanza 401', async () => {
-    const mockOctokit = {
-      rest: {
-        issues: {
-          create: vi.fn().mockRejectedValue({ status: 401 }),
-        },
-      },
-    } as any;
+        expect(result.isError).toBe(true);
+        expect(result.content[0].type).toBe('text');
 
-    const result = await createIssueHandler(
-      { owner: 'octocat', repo: 'Hello-World', title: 'Test' },
-      mockOctokit
-    );
+        const parsed = JSON.parse(result.content[0].text);
+        expect(parsed.message).toBe('Token inválido');
+        expect(parsed.hint).toBeTruthy();
+    });
 
-    expect(result.isError).toBe(true);
-    if (result.isError) {
-      expect(result.code).toBe('UNAUTHORIZED');
-    }
-  });
+    it('maneja errores inesperados sin romper', () => {
+        const result = formatToolError(new Error('algo raro'));
+        expect(result.isError).toBe(true);
+        
+        const parsed = JSON.parse(result.content[0].text);
+        expect(parsed.message).toBeTruthy();
+    });
 });

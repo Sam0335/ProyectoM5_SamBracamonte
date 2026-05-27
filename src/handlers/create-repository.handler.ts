@@ -1,43 +1,50 @@
+// src/handlers/create-repository.handler.ts
 import { Octokit } from '@octokit/rest';
 import { CreateRepositorySchema } from '../schemas/index.schemas';
 import { RepoToDTO, CreateRepositoryDTO } from '../dtos/create-repository.dto';
-import { mapGitHubError, ToolError } from '../errors/index.errors';
+import { mapGitHubError, formatToolError, ToolResponse } from '../errors/index.errors';
+import { ValidationError } from '../utils/types';
+import { withExponentialBackoff, shouldRetryGitHub } from '../utils/retry';
 
 export type CreateRepositoryResult =
-    | { isError: false; data: CreateRepositoryDTO[] }
-    | ToolError;
+    | { isError: false; data: CreateRepositoryDTO }
+    | ToolResponse;
 
 export async function createRepositoryHandler(
     input: unknown,
     octokit: Octokit
 ): Promise<CreateRepositoryResult> {
-  // PASO 1: Validar el input con Zod
     const parsed = CreateRepositorySchema.safeParse(input);
 
     if (!parsed.success) {
-        return {
-            isError: true,
-            code: 'VALIDATION_ERROR',
-            message: 'Input invalido para create_repository',
-            hint: 'owner, name y description son obligatorios y no pueden estar vacios',
-        };
+        return formatToolError(
+            new ValidationError('Input inválido para create_repository', {
+                issues: parsed.error.issues,
+            })
+        );
     }
 
-  // PASO 2: Llamar a GitHub via Octokit
     try {
-        const response = await octokit.rest.repos.createForAuthenticatedUser({
-            name: parsed.data.name,
-            description: parsed.data.description,
-            private: parsed.data.private,
-        });
+        const response = await withExponentialBackoff(
+            () => octokit.rest.repos.createForAuthenticatedUser({
+                name: parsed.data.name,
+                description: parsed.data.description,
+                private: parsed.data.private,
+            }),
+            {
+                maxRetries: 3,
+                baseDelayMs: 1000,
+                maxDelayMs: 30000,
+                shouldRetry: shouldRetryGitHub,
+            }
+        );
 
-    // PASO 3: Mapear a DTO y devolver
         return {
             isError: false,
-            data: [RepoToDTO(response.data)],
+            data: RepoToDTO(response.data),
         };
     } catch (err) {
-    // PASO 4: Si algo falla, mapeamos el error
-        return mapGitHubError(err);
+        mapGitHubError(err);
+        return formatToolError(err);
     }
 }

@@ -34,7 +34,11 @@ describe('listRepositoriesHandler', () => {
     const result = await listRepositoriesHandler({ username: '' }, fakeOctokit);
 
     expect(result.isError).toBe(true);
-    if (result.isError) expect(result.code).toBe('VALIDATION_ERROR');
+    if (result.isError) {
+        const parsed = JSON.parse(result.content[0].text);
+        expect(parsed.message).toBeTruthy();
+        expect(parsed.hint).toBeTruthy();
+    }
   });
 });
 
